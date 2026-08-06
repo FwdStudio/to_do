@@ -2,8 +2,17 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>To-Do List</title>
+
+  <!-- PWA & Meta Tag iOS -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="To-Do">
+  <meta name="theme-color" content="#2563eb">
+
   <style>
     :root {
       --bg: #f4f6f9;
@@ -148,7 +157,6 @@
       box-shadow: 0 10px 20px rgba(0,0,0,0.15);
       background: #ffffff;
       z-index: 1000;
-      position: relative;
     }
 
     .drag-handle {
@@ -156,7 +164,7 @@
       color: var(--text-muted);
       padding: 4px 10px 4px 0;
       font-size: 1.2rem;
-      touch-action: none; /* Impedisce lo scroll della pagina mentre trascini l'icona */
+      touch-action: none;
     }
 
     .task-item.completed span {
@@ -303,15 +311,13 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    // --- Supporto Touch & Mobile Drag ---
+    // Touch & Drag Handling
     function setupTouchDrag(item) {
       const handle = item.querySelector('.drag-handle');
       let dragIndex = null;
-      let initialY = 0;
 
       handle.addEventListener('touchstart', (e) => {
         dragIndex = Number(item.dataset.index);
-        initialY = e.touches[0].clientY;
         item.classList.add('dragging');
       }, { passive: true });
 
@@ -325,7 +331,6 @@
         if (targetItem && targetItem !== item) {
           const targetIndex = Number(targetItem.dataset.index);
           if (dragIndex !== targetIndex) {
-            // Scambia elementi nell'array
             const [movedItem] = tasks.splice(dragIndex, 1);
             tasks.splice(targetIndex, 0, movedItem);
             dragIndex = targetIndex;
@@ -350,8 +355,16 @@
       }
     });
 
+    // Registrazione Service Worker per uso Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('Service Worker Registrato'))
+          .catch((err) => console.log('Errore SW:', err));
+      });
+    }
+
     renderTasks();
   </script>
 </body>
 </html>
-
